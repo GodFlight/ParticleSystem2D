@@ -24,7 +24,11 @@ int	close_cl(t_ps_main *ps)
 	ret |= clReleaseCommandQueue(ps->cl.queue);
 	ret |= clReleaseDevice(ps->cl.device_id);
 	ret |= clReleaseKernel(ps->cl.kernel);
-	ret |= clReleaseMemObject(ps->cl.img);
+	ret |= clReleaseMemObject(ps->gpu_mem->particle);
+	ret |= clReleaseMemObject(ps->gpu_mem->img);
+	ret |= clReleaseMemObject(ps->host_mem.mouse);
+	ret |= clReleaseMemObject(ps->host_mem.rand_x);
+	ret |= clReleaseMemObject(ps->host_mem.rand_y);
 	if (ret == 0)
 		return (1);
 	else
@@ -49,10 +53,18 @@ void	sdl_init(t_sdl **sdl)
 			SDL_TEXTUREACCESS_STATIC, (*sdl)->win_w, (*sdl)->win_h);
 }
 
+void		event_init(t_ps_main *ps)
+{
+	ps->events.lkm = 0;
+	ps->events.mouse_x = WIDTH / 2;
+	ps->events.mouse_y = HEIGHT / 2;
+}
+
 void		ps_main_init(t_ps_main *ps)
 {
 	if (!(ps = (t_ps_main *)ft_memalloc(sizeof(t_ps_main))))
 		ps_error_manager("COULD NOT ALLOCATED MEMORY IN PS STRUCT", -1);
+	event_init(ps);
 }
 
 void	particle_init(t_particle **partcl)
@@ -119,6 +131,10 @@ void	cl_init(t_ps_main *data)
 	free(kernel);
 	ret = clBuildProgram(data->cl.programs, 1, &data->cl.device_id, "-DOPENCL___ -I include/ ", NULL, NULL);
 	data->cl.kernel = clCreateKernel(data->cl.programs, "particle", &ret);
+	data->host_mem.rand_x = clCreateBuffer(data->cl.context, CL_MEM_READ_ONLY,
+										   sizeof(float), NULL, &ret);
+	data->host_mem.rand_y = clCreateBuffer(data->cl.context, CL_MEM_READ_ONLY,
+										   sizeof(float), NULL, &ret);
 	fill_gpu_mem(data);
 }
 
@@ -127,13 +143,22 @@ void	run_cl(t_ps_main *data)
 	int		ret;
 	size_t	global_size;
 	size_t 	local_size[2];
+	float 	rand_x;
+	float 	rand_y;
 
 	ret = 0;
 	local_size[0] = 256;
 	local_size[1] = 1;
 	global_size = PARTICLE_COUNT;
+	rand_x = (float)(rand() % 5) / 100;
+	rand_y = (float)(rand() % 5) / 100;
+	data->host_mem.mouse = clCreateBuffer(data->cl.context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR,
+			sizeof(t_mouse_events), &data->events, &ret);
 	ret = clSetKernelArg(data->cl.kernel, 0, sizeof(cl_mem), &data->gpu_mem->img);
 	ret = clSetKernelArg(data->cl.kernel, 1, sizeof(cl_mem), &data->gpu_mem->particle);
+	ret = clSetKernelArg(data->cl.kernel, 2, sizeof(cl_mem), &data->host_mem.mouse);
+	ret = clSetKernelArg(data->cl.kernel, 3, sizeof(cl_float), &rand_x);
+	ret = clSetKernelArg(data->cl.kernel, 4, sizeof(cl_float), &rand_y);
 	ret = clEnqueueNDRangeKernel(data->cl.queue, data->cl.kernel, 1, NULL, &global_size, NULL, 0, NULL, NULL);
 	ret = clEnqueueReadBuffer(data->cl.queue, data->gpu_mem->img, CL_TRUE, 0,
 			sizeof(int) * WIDTH * HEIGHT, data->sdl->data, 0, NULL, NULL);
@@ -143,9 +168,9 @@ void	main_loop(t_ps_main *ps, t_sdl *sdl)
 {
 	while (1337)
 	{
+		SDL_RenderClear(sdl->renderer);
 		run_cl(ps);
 		SDL_SetRenderTarget(sdl->renderer, sdl->texture);
-		SDL_RenderClear(sdl->renderer);
 		SDL_UpdateTexture(sdl->texture, NULL, (void *)sdl->data, sdl->win_w * sizeof(int));
 		SDL_SetRenderTarget(sdl->renderer, NULL);
 		SDL_RenderCopy(sdl->renderer, sdl->texture, NULL, NULL);
@@ -156,6 +181,23 @@ void	main_loop(t_ps_main *ps, t_sdl *sdl)
 				(sdl->event.type == SDL_KEYDOWN &&
 				 sdl->event.key.keysym.scancode == SDL_SCANCODE_ESCAPE))
 				break;
+			if (sdl->event.type == SDL_MOUSEBUTTONDOWN && (sdl->event.button.button == SDL_BUTTON_LEFT
+															|| sdl->event.button.button == SDL_BUTTON_RIGHT))
+			{
+//				SDL_ShowSimpleMessageBox(0, "Mouse", "Tbl", sdl->win);
+				ps->events.mouse_x = sdl->event.button.x;
+				ps->events.mouse_y = sdl->event.button.y;
+				ps->events.lkm = sdl->event.button.button;
+			}
+			else if (sdl->event.type == SDL_MOUSEMOTION && (sdl->event.motion.state == SDL_BUTTON_LMASK
+															|| sdl->event.motion.state == SDL_BUTTON_RMASK))
+			{
+				ps->events.mouse_x = sdl->event.button.x;
+				ps->events.mouse_y = sdl->event.button.y;
+				ps->events.lkm = sdl->event.motion.state;
+			}
+			else
+				ps->events.lkm = 0;
 		}
 	}
 	close_cl(ps);

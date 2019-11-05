@@ -14,6 +14,7 @@
 #define WIDTH 1920
 #define HEIGHT 1080
 #define PARTICLE_COUNT 1000000
+#define PARTICLE_SPEED 2
 
 #ifndef OPENCL___
 typedef struct		s_sdl
@@ -23,11 +24,8 @@ typedef struct		s_sdl
     SDL_Event		event;
     SDL_Texture		*texture;
     int 			*data;
-    int 			x;
-    int 			y;
     int				win_h;
     int				win_w;
-    char 			*win_title;
 }					t_sdl;
 
 typedef struct 		s_gpu_mem
@@ -35,6 +33,13 @@ typedef struct 		s_gpu_mem
 	cl_mem 			img;
 	cl_mem 			particle;
 }					t_gpu_mem;
+
+typedef struct 		s_host_mem
+{
+	cl_mem 			rand_x;
+	cl_mem 			rand_y;
+	cl_mem 			mouse;
+}					t_host_mem;
 
 typedef struct 		s_cl
 {
@@ -44,9 +49,21 @@ typedef struct 		s_cl
 	cl_device_id		device_id;
 	cl_platform_id 		platform_id;
 	cl_kernel 			kernel;
-	cl_mem 				img;
 }					t_cl;
 #endif
+
+typedef struct		s_mouse_events
+{
+#ifndef OPENCL___
+	cl_int 			mouse_x;
+	cl_int 			mouse_y;
+	char			lkm;
+#else
+	int				mouse_x;
+	int				mouse_y;
+	char			lkm;
+#endif
+}					t_mouse_events;
 
 typedef struct 		s_particle
 {
@@ -60,12 +77,14 @@ typedef struct 		s_particle
 }					t_particle;
 
 #ifndef OPENCL___
-typedef struct s_ps_main
+typedef struct		s_ps_main
 {
-	t_sdl       *sdl;
-    t_cl		cl;
-    t_gpu_mem	*gpu_mem;
-    t_particle	*partcl;
-}               t_ps_main;
+	t_sdl			*sdl;
+    t_cl			cl;
+    t_gpu_mem		*gpu_mem;
+    t_host_mem		host_mem;
+    t_particle		*partcl;
+    t_mouse_events	events;
+}					t_ps_main;
 #endif
 #endif
