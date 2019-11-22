@@ -43,7 +43,7 @@ void	cl_init(t_ps_main *data)
 									   NULL, NULL, &ret);
 	data->cl.queue = clCreateCommandQueue(data->cl.context, data->cl.device_id,
 										  0, &ret);
-	kernel = read_kernels("../src/particle_kernel.cl", &kernel_len);
+	kernel = read_kernels("./src/particle_kernel.cl", &kernel_len);
 	data->cl.programs = clCreateProgramWithSource(data->cl.context, 1, (const char **)&kernel, &kernel_len, &ret);
 	free(kernel);
 	ret = clBuildProgram(data->cl.programs, 1, &data->cl.device_id, "-DOPENCL___ -I include/ ", NULL, NULL);
