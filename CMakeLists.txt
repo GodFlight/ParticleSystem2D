@@ -14,7 +14,6 @@ include_directories(Libft/include)
 
 
 add_executable(Particle_System
-        include/stb_image.h
         Libft/include/get_next_line.h
         Libft/include/libft.h
         Libft/src/ft_abs.c
@@ -88,7 +87,9 @@ add_executable(Particle_System
         Libft/src/ft_tolower.c
         Libft/src/ft_toupper.c
         Libft/src/ft_updt.c
-        Libft/src/get_next_line.c include/particale_system.h main.c)
+        Libft/src/get_next_line.c
+        include/particale_system.h
+        src/main.c src/init_sdl.c src/init_cl.c src/particle_init.c src/main_and_event_init.c src/cl_processing.c)
 
 target_include_directories(Particle_System PRIVATE /Users/$ENV{USER}/.brew/Cellar/sdl2/2.0.10/include/SDL2)
 target_include_directories(Particle_System PRIVATE /Users/$ENV{USER}/.brew/Cellar/sdl2_image/2.0.5/include/SDL2)

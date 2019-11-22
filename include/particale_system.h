@@ -14,7 +14,11 @@
 #define WIDTH 1920
 #define HEIGHT 1080
 #define PARTICLE_COUNT 1000000
-#define PARTICLE_SPEED 2
+#define RANDOM_VELOCITY 0.02f
+#define PARTICLE_SPEED 0.1f
+#define SLOW_DOWN 0.999f
+#define START_COLOR 0x0000FF
+#define END_COLOR 0xFF0000
 
 #ifndef OPENCL___
 typedef struct		s_sdl
@@ -36,8 +40,6 @@ typedef struct 		s_gpu_mem
 
 typedef struct 		s_host_mem
 {
-	cl_mem 			rand_x;
-	cl_mem 			rand_y;
 	cl_mem 			mouse;
 }					t_host_mem;
 
@@ -86,5 +88,16 @@ typedef struct		s_ps_main
     t_particle		*partcl;
     t_mouse_events	events;
 }					t_ps_main;
+
+void		ps_error_manager(const char *str, const int id);
+void		cl_init(t_ps_main *data);
+void		sdl_init(t_sdl **sdl);
+void		particle_init(t_particle **partcl);
+void		ps_main_init(t_ps_main *ps);
+void		event_init(t_ps_main *ps);
+void		run_cl(t_ps_main *data);
+int			close_cl(t_ps_main *ps);
+
 #endif
 #endif
+
