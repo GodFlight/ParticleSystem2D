@@ -56,7 +56,7 @@ dkms.conf
 cmake-build-debug
 
 # Executable
-rt
+Particle_System
 
 # just trash
 ajbfjkbjafas1243.txt
