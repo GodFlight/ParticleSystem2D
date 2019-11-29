@@ -23,20 +23,22 @@ __kernel void particle(__global int *img, __global t_particle *pt,
 	int gid = get_global_id(0);
 	size_t particl_number = gid % PARTICLE_COUNT;
 	float2 direction = (float2)(mouse->mouse_x, mouse->mouse_y);
-	img[(int)pt[particl_number].pos.x + (int)pt[particl_number].pos.y * WIDTH] = 0x000000;
+	if (pt[particl_number].pos.x <= WIDTH && pt[particl_number].pos.x > 0
+		&& pt[particl_number].pos.y > 0 && pt[particl_number].pos.y <= HEIGHT)
+		img[(int)pt[particl_number].pos.x + (int)pt[particl_number].pos.y * WIDTH] = 0x000000;
 
 	if (pt[particl_number].velocity.x != 0.f && pt[particl_number].velocity.y != 0.f)
 		pt[particl_number].velocity *= SLOW_DOWN;
 	pt[particl_number].pos += pt[particl_number].velocity * PARTICLE_SPEED;
 
-	if (pt[particl_number].pos.x > WIDTH)
-		pt[particl_number].velocity.x = -pt[particl_number].velocity.x;
-	if (pt[particl_number].pos.x <= 0)
-		pt[particl_number].velocity.x = -pt[particl_number].velocity.x;
-	if (pt[particl_number].pos.y > HEIGHT)
-		pt[particl_number].velocity.y = -pt[particl_number].velocity.y;
-	if (pt[particl_number].pos.y < 0)
-		pt[particl_number].velocity.y = -pt[particl_number].velocity.y;
+//	if (pt[particl_number].pos.x > WIDTH)
+//		pt[particl_number].velocity.x = -pt[particl_number].velocity.x;
+//	if (pt[particl_number].pos.x <= 0)
+//		pt[particl_number].velocity.x = -pt[particl_number].velocity.x;
+//	if (pt[particl_number].pos.y > HEIGHT)
+//		pt[particl_number].velocity.y = -pt[particl_number].velocity.y;
+//	if (pt[particl_number].pos.y < 0)
+//		pt[particl_number].velocity.y = -pt[particl_number].velocity.y;
 
 	float2 view_direction = direction - pt[particl_number].pos;
 	view_direction = normalize(view_direction);
@@ -50,13 +52,15 @@ __kernel void particle(__global int *img, __global t_particle *pt,
 	}
 
 	int color = get_color(length(pt[particl_number].velocity) * 0.01f);
-	if (pt[particl_number].pos.x > WIDTH)
-		pt[particl_number].pos.x = WIDTH;
-	if (pt[particl_number].pos.x <= 0)
-		pt[particl_number].pos.x = 0;
-	if (pt[particl_number].pos.y > HEIGHT)
-		pt[particl_number].pos.y = HEIGHT;
-	if (pt[particl_number].pos.y < 0)
-		pt[particl_number].pos.y = 0;
+//	if (pt[particl_number].pos.x > WIDTH)
+//		pt[particl_number].pos.x = WIDTH;
+//	if (pt[particl_number].pos.x <= 0)
+//		pt[particl_number].pos.x = 0;
+//	if (pt[particl_number].pos.y > HEIGHT)
+//		pt[particl_number].pos.y = HEIGHT;
+//	if (pt[particl_number].pos.y < 0)
+//		pt[particl_number].pos.y = 0;
+	if (pt[particl_number].pos.x <= WIDTH && pt[particl_number].pos.x > 0
+		&& pt[particl_number].pos.y > 0 && pt[particl_number].pos.y <= HEIGHT)
 	img[(int)pt[particl_number].pos.x + (int)pt[particl_number].pos.y * WIDTH] = color;
 }
