@@ -10,6 +10,7 @@ void 	fill_gpu_mem(t_ps_main *ps)
 									  sizeof(int) * WIDTH * HEIGHT, ps->sdl->data, &ret);
 	ps->gpu_mem->particle = clCreateBuffer(ps->cl.context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
 										   sizeof(t_particle) * PARTICLE_COUNT, ps->partcl, &ret);
+	free(ps->partcl);
 }
 
 char 	*read_kernels(char *path, size_t *len)
